@@ -1,0 +1,14 @@
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\bin\Debug\net7.0\ServiceLayer.Abstractions.deps.json
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\bin\Debug\net7.0\ServiceLayer.Abstractions.runtimeconfig.json
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\bin\Debug\net7.0\ServiceLayer.Abstractions.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\bin\Debug\net7.0\ServiceLayer.Abstractions.pdb
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.csproj.AssemblyReference.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.AssemblyInfoInputs.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.AssemblyInfo.cs
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.csproj.CoreCompileInputs.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\refint\ServiceLayer.Abstractions.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.pdb
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ServiceLayer.Abstractions.genruntimeconfig.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\ServiceLayer.Abstractions\obj\Debug\net7.0\ref\ServiceLayer.Abstractions.dll

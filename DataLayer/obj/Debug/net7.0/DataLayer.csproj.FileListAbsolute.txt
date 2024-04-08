@@ -1,0 +1,14 @@
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\bin\Debug\net7.0\DataLayer.deps.json
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\bin\Debug\net7.0\DataLayer.runtimeconfig.json
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\bin\Debug\net7.0\DataLayer.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\bin\Debug\net7.0\DataLayer.pdb
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.csproj.AssemblyReference.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.AssemblyInfoInputs.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.AssemblyInfo.cs
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.csproj.CoreCompileInputs.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\refint\DataLayer.dll
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.pdb
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\DataLayer.genruntimeconfig.cache
+C:\Users\Stanislav Lukashov\Desktop\проги\обучение\BuildingProjects\DataLayer\obj\Debug\net7.0\ref\DataLayer.dll
