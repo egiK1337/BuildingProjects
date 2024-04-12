@@ -1,4 +1,5 @@
-﻿using DataLayer.EfCode;
+﻿using DataLayer.EfClasses;
+using DataLayer.EfCode;
 using Microsoft.IdentityModel.Tokens;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -14,7 +15,7 @@ class Program
     private static ITelegramBotClient _botClient;
     private static ReceiverOptions _receiverOptions;
     private static bool _isAuthorized = false;
-    private static State _currentState = State.Start
+    private static State _currentState = State.Start;
     private static DataLayer.EfClasses.User _currentUser = new DataLayer.EfClasses.User();
 
 
@@ -55,6 +56,11 @@ class Program
     private static async Task UpdateHandler(ITelegramBotClient _botClient, Update update,
         CancellationToken cancellationToken)
     {
+        var efCoreContext = new EfCoreContext();
+        var engineerLogic = new EngineerLogic(efCoreContext);
+
+
+
         if (update.Type == UpdateType.Message && update.Message is { })
         {
             var message = update.Message;
@@ -65,26 +71,31 @@ class Program
                     if (message.Text.StartsWith("/auth"))
                     {
                         _currentState = State.AuthInProgress;
-                        await RequestAuthorization(message.Chat.Id);
+                        await RequestLoginPassword(message.Chat.Id);
+                    }
+                    else if (message.Text.StartsWith("/reg"))
+                    {
+                        _currentState = State.RegInProgress;
+                        await RequestLoginPassword(message.Chat.Id);
                     }
                     else
                     {
                         await _botClient.SendTextMessageAsync(message.Chat.Id,
-                            "Пожалуйста начните с аунтификации используя команду /auth.");
+                            "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
                     }
 
                     break;
 
-                case State.AuthInProgress:
-                    // Авторизация пользователя
-                    Authorize(message);
-                    if (_currentState == State.Authenticated)
-                        ShowMainMenu(message.Chat.Id);
-                    else await RequestAuthorization(message.Chat.Id);
+                case State.RegInProgress:
+                    // Регистрация пользователя
+                    Registration(message);
+                    if (_currentState == State.Registered)
+                        ShowMainMenu(message.Chat.Id, _currentUser.Roles);
+                    else await RequestLoginPassword(message.Chat.Id);
                     break;
 
-                case State.Authenticated:
-                    if (message.Text.StartsWith("/add"))
+                case State.Registered:
+                    if (message.Text.StartsWith("/addName"))
                     {
                         _currentState = State.AddingUser;
                         await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -92,22 +103,72 @@ class Program
                     }
                     else
                     {
-                        ShowMainMenu(message.Chat.Id);
+                        ShowMainMenu(message.Chat.Id, _currentUser.Roles);
                     }
 
                     break;
 
-                case State.AddingUser:
-                    var efCoreContext = new EfCoreContext();
-                    var engineerLogic = new EngineerLogic(efCoreContext);
+                case State.AuthInProgress:
+                    // Аунтификация пользователя
+                    var loginPassCheck = Authentication(message);
+                    if (_currentState == State.Authenticated)
+                    {
+                        await _botClient.SendTextMessageAsync(message.Chat.Id, $"{loginPassCheck}. Вы авторизированы в статусе:{_currentUser.Roles}");
+                        //_currentState = State.Start;
+                        if (_currentUser.Roles != Roles.Guest)
+                        {
+                            ShowMainMenu(message.Chat.Id, _currentUser.Roles);
+                        }
+                        else
+                        {
+                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                             "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                        }
 
+                    }
+                    else await RequestLoginPassword(message.Chat.Id);
+                    break;
+
+                case State.Authenticated:
+
+                    switch (_currentUser.Roles)
+                    {
+                        case Roles.Engineer:
+                            if (message.Text.StartsWith("/list"))
+                            {
+                                var engineersList = engineerLogic.List();
+                                var count = 0;
+                                foreach (var item in engineersList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"#{count}:{item.Name.ToString()}");
+                                    count++;
+                                }
+                            }
+                            else if (message.Text.StartsWith("/exit"))
+                            {
+                                _currentState = State.Start;
+                                await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                            }
+                            else
+                            {
+                                ShowMainMenu(message.Chat.Id, _currentUser.Roles);
+                            }
+
+                            break;
+                    }
+                    break;
+
+                case State.AddingUser:
                     if (!message.Text.IsNullOrEmpty())
                     {
-                        engineerLogic.Add(message.Text, _currentUser);
+                        var newUser = engineerLogic.Add(message.Text, _currentUser);
+                        _currentUser.Roles = Roles.Engineer;
+                        await _botClient.SendTextMessageAsync(message.Chat.Id, newUser);
                     }
-                    //efCoreContext.Dispose();
-                    _currentState = State.Authenticated;
-                    ShowMainMenu(message.Chat.Id);
+                    efCoreContext.Dispose();
+                    _currentState = State.Start;
+
                     break;
 
                 default:
@@ -116,13 +177,30 @@ class Program
         }
     }
 
-    private static async Task RequestAuthorization(long chatId)
+    private static async Task RequestLoginPassword(long chatId)
     {
         await _botClient.SendTextMessageAsync(chatId,
-            "Введи те логин и пароль (пример: User123 Password123):"); // Логика получения логина
+            "Введите логин и пароль (пример: User123 Password123):"); // Логика получения логина
     }
 
-    private static void Authorize(Message message)
+    private static void Registration(Message message)
+    {
+        //TODO auth logic goes here
+        //just for show case
+        _currentState = !string.IsNullOrWhiteSpace(message.Text) && message.Text.Split(" ").Length > 1
+            ? State.Registered
+            : State.RegInProgress;
+        if (_currentState == State.Registered)
+        {
+            var loginPassword = message.Text.Split();
+
+            _currentUser.Login = loginPassword[0];
+            _currentUser.Password = loginPassword[1];
+            _currentUser.Roles = Roles.Guest;
+        }
+    }
+
+    private static string Authentication(Message message)
     {
         //TODO auth logic goes here
         //just for show case
@@ -135,18 +213,66 @@ class Program
 
             _currentUser.Login = loginPassword[0];
             _currentUser.Password = loginPassword[1];
+
+            var efCoreContext = new EfCoreContext();
+            var userLogic = new UserLogic(efCoreContext);
+            _currentUser.Roles = userLogic.RoleFinder(_currentUser);
+            efCoreContext.Dispose();
+            if (_currentUser.Roles != Roles.Guest)
+            {
+                return "Логин и пароль приняты";
+            }
         }
+        return "Логин или пароль введены неправильно";
     }
 
 
-
-    private static void ShowMainMenu(long chatId)
+    private static void ShowMainMenu(long chatId, Roles roles)
     {
-        var replyKeyboard = new ReplyKeyboardMarkup(new[]
+        switch (_currentUser.Roles)
         {
-            new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-        });
-        _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: replyKeyboard);
+            case Roles.Guest:
+                var guestKeyboard = new ReplyKeyboardMarkup(new[]
+{
+                     new[] { new KeyboardButton("/addName"), new KeyboardButton("/exit") }
+                });
+                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: guestKeyboard);
+                break;
+
+            case Roles.Engineer:
+                var engineerKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                     new[] { new KeyboardButton( "/list" ), new KeyboardButton("/exit") }
+                });
+                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: engineerKeyboard);
+                break;
+
+            case Roles.Admin:
+                var adminKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+                });
+                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: adminKeyboard);
+                break;
+
+            case Roles.ChiefEngineer:
+                var chiefEngineerKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+                });
+                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: chiefEngineerKeyboard);
+                break;
+
+            case Roles.ProjectManager:
+                var projectManagerKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                     new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+                });
+                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: projectManagerKeyboard);
+                break;
+
+        }
+
     }
 
     private static Task ErrorHandler(ITelegramBotClient botClient, Exception error,
@@ -171,7 +297,27 @@ class Program
 
 
 
+//private static async Task RequestAuthorization(long chatId)
+//{
+//    await _botClient.SendTextMessageAsync(chatId,
+//        "Введи те логин и пароль (пример: User123 Password123):"); // Логика получения логина
+//}
 
+//private static void Authorize(Message message)
+//{
+//    //TODO auth logic goes here
+//    //just for show case
+//    _currentState = !string.IsNullOrWhiteSpace(message.Text) && message.Text.Split(" ").Length > 1
+//        ? State.Authenticated
+//        : State.AuthInProgress;
+//    if (_currentState == State.Authenticated)
+//    {
+//        var loginPassword = message.Text.Split();
+
+//        _currentUser.Login = loginPassword[0];
+//        _currentUser.Password = loginPassword[1];
+//    }
+//}
 
 
 

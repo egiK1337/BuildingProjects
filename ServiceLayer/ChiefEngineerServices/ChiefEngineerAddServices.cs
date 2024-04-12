@@ -27,7 +27,7 @@ namespace ServiceLayer.ChiefEngineerServices
                 var newChiefEngineer = new ChiefEngineer()
                 {
                     Name = enterChiefEngineer,
-                    User = new User() { Roles = Roles.ChiefEnginer }
+                    User = new User() { Roles = Roles.ChiefEngineer }
                 };
                 _context.Add(newChiefEngineer);
                 _context.SaveChanges();

@@ -19,25 +19,15 @@ namespace TelegramBot.TelegramServices
             _adminDeleteServices = new AdminDeleteServices(context);
         }
 
-        //public string Add(string enterString)
-        //{
-        //    return _adminAddServices.Add(enterString);
-        //}
-
-        public (Admin, string) Add(string enterString)
+        public string Add(string enterString)
         {
             return _adminAddServices.Add(enterString);
         }
 
-        public string Login(Admin admin, string login)
-        {
-            return _adminAddServices.Login(admin, login);
-        }
-
-        public string Password(Admin admin, string login)
-        {
-            return _adminAddServices.Password(admin, login);
-        }
+        //public (Admin, string) Add(string enterString)
+        //{
+        //    return _adminAddServices.Add(enterString);
+        //}
 
         public string Delete(int id)
         {

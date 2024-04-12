@@ -1,7 +1,10 @@
-﻿using DataLayer.EfCode;
+﻿using DataLayer.EfClasses;
+using DataLayer.EfCode;
+using ServiceLayer.BuildingServices;
 using ServiceLayer.UserServices;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using User = DataLayer.EfClasses.User;
 
 namespace TelegramBot.TelegramServices
 {
@@ -9,18 +12,14 @@ namespace TelegramBot.TelegramServices
     {
         private readonly UserAuthorizationServices _userAuthorizationServices;
 
-        public UserLogic()
-        {
-        }
-
-        public UserLogic(EfCoreContext context) : base()
+        public UserLogic(EfCoreContext context)
         {
             _userAuthorizationServices = new UserAuthorizationServices(context);
         }
 
-        //public async Task Authorization(ITelegramBotClient client, Update update, CancellationToken ct)
-        //{
-        //   await _userAuthorizationServices.Authorization(client, update, ct);
-        //}
+        public Roles RoleFinder(User user)
+        {
+          return _userAuthorizationServices.RoleFinder(user);
+        }
     }
 }

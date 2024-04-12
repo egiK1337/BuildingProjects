@@ -232,6 +232,10 @@
               "target": "Package",
               "version": "[11.9.0, )"
             },
+            "LinqKit": {
+              "target": "Package",
+              "version": "[1.2.5, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[7.0.15, )"

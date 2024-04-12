@@ -6,6 +6,13 @@ namespace TelegramBot.Enum
         Start,
         AuthInProgress,
         Authenticated,
-        AddingUser
+        RegInProgress,
+        Registered,
+        AddingUser,
+        Engineer,
+        ProjectManager,
+        Admin,
+        ChiefEngineer,
+        Guest
     }
 }
