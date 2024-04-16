@@ -6,7 +6,7 @@ using ServiceLayer.BuildingServices;
 
 namespace TelegramBot.TelegramServices
 {
-    public class BuildingLogic
+    internal class BuildingLogic
     {
         private readonly BuildingAddServices _buldingAddServices;
         private readonly BuildingDeleteServices _buldingDeleteServices;

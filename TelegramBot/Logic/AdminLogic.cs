@@ -4,7 +4,7 @@ using ServiceLayer.AdminServices;
 
 namespace TelegramBot.TelegramServices
 {
-    public class AdminLogic
+    internal class AdminLogic
     {
         private readonly AdminAddServices _adminAddServices;
         private readonly AdminEditServices _adminEditServices;
@@ -19,9 +19,9 @@ namespace TelegramBot.TelegramServices
             _adminDeleteServices = new AdminDeleteServices(context);
         }
 
-        public string Add(string enterString)
+        public string Add(string enterString, User user)
         {
-            return _adminAddServices.Add(enterString);
+            return _adminAddServices.Add(enterString, user);
         }
 
         //public (Admin, string) Add(string enterString)

@@ -4,7 +4,7 @@ using ServiceLayer.ChiefEngineerServices;
 
 namespace TelegramBot.TelegramServices
 {
-    public class ChiefEngineerLogic
+    internal class ChiefEngineerLogic
     {
         private readonly ChiefEngineerAddServices _chiefEngineerAddServices;
         private readonly ChiefEngineerDeleteServices _chiefEngineerDeleteServices;

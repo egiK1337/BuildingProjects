@@ -1,6 +1,6 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
-
+using System.Data.Entity;
 
 namespace ServiceLayer.AdminServices
 {
@@ -13,15 +13,18 @@ namespace ServiceLayer.AdminServices
             _context = context;
         }
 
-        public string Add(String enterAdminName)
+        public string Add(String enterAdminName, User user)
         {
             if (enterAdminName != null)
             {
-                var check = _context.Admins
+                var AdminNamecheck = _context.Admins
                     .Where(b => b.Name.ToUpper().Trim() == enterAdminName.ToUpper().Trim())
                     .FirstOrDefault();
+                var UserLoginCheck = _context.Admins
+                    .Where(u => u.User.Login.ToUpper().Trim() == user.Login.ToUpper().Trim())
+                    .FirstOrDefault();
 
-                if (check != null)
+                if (AdminNamecheck != null || UserLoginCheck != null)
                 {
                     return "Такой админ уже есть в базе";
                 }
@@ -29,7 +32,12 @@ namespace ServiceLayer.AdminServices
                 {
                     Name = enterAdminName,
                     Password = enterAdminName,
-                    User = new User() { Roles = Roles.Admin }
+                    User = new User()
+                    {
+                        Login = user.Login,
+                        Password = user.Password,
+                        Roles = Roles.Admin
+                    }
                 };
                 _context.Add(newAdmin);
                 _context.SaveChanges();

@@ -8,7 +8,7 @@ using User = DataLayer.EfClasses.User;
 
 namespace TelegramBot.TelegramServices
 {
-    public class UserLogic
+    internal class UserLogic
     {
         private readonly UserAuthorizationServices _userAuthorizationServices;
 
@@ -19,7 +19,7 @@ namespace TelegramBot.TelegramServices
 
         public Roles RoleFinder(User user)
         {
-          return _userAuthorizationServices.RoleFinder(user);
+            return _userAuthorizationServices.RoleFinder(user);
         }
     }
 }

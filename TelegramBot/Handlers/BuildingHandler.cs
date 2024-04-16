@@ -5,7 +5,7 @@ using TelegramBot.TelegramServices;
 
 namespace TelegramBot.Handlers
 {
-    public static class BuildingHandler
+    internal static class BuildingHandler
     {
 
         public static async Task Add(ITelegramBotClient client, Update update, CancellationToken ct)

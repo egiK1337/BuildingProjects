@@ -1,6 +1,7 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.IdentityModel.Tokens;
+using System.Diagnostics;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -8,6 +9,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.Enum;
+using TelegramBot.Handlers;
 using TelegramBot.TelegramServices;
 
 class Program
@@ -15,7 +17,10 @@ class Program
     private static ITelegramBotClient _botClient;
     private static ReceiverOptions _receiverOptions;
     private static bool _isAuthorized = false;
+
+    private static StateAction _stateAction = StateAction.Start;
     private static State _currentState = State.Start;
+    private static StateAdd _stateAdd = StateAdd.Start;
     private static DataLayer.EfClasses.User _currentUser = new DataLayer.EfClasses.User();
 
 
@@ -57,131 +62,210 @@ class Program
         CancellationToken cancellationToken)
     {
         var efCoreContext = new EfCoreContext();
+
         var engineerLogic = new EngineerLogic(efCoreContext);
+        var adminLogic = new AdminLogic(efCoreContext);
+        var chiefEngineerLogic = new ChiefEngineerLogic(efCoreContext);
+        var projectManagerLogic = new ProjectManagerLogic(efCoreContext);
+        var buildongLogic = new BuildingLogic(efCoreContext);
 
 
 
-        if (update.Type == UpdateType.Message && update.Message is { })
+        var message = update.Message;
+
+
+        switch (_currentState)
         {
-            var message = update.Message;
+            case State.Start:
+                if (message.Text.StartsWith("/auth"))
+                {
+                    _currentState = State.AuthInProgress;
+                    await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
+                }
+                else if (message.Text.StartsWith("/reg"))
+                {
+                    _currentState = State.RegInProgress;
+                    await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
+                }
+                else
+                {
+                    await _botClient.SendTextMessageAsync(message.Chat.Id,
+                        "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                }
 
-            switch (_currentState)
-            {
-                case State.Start:
-                    if (message.Text.StartsWith("/auth"))
+                break;
+
+            case State.RegInProgress:
+                // Регистрация пользователя
+                Registration(message);
+                if (_currentState == State.Registered)
+                    MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
+
+                break;
+
+            case State.Registered:
+                if (message.Text.StartsWith("/addName"))
+                {
+                    _currentState = State.AddingUser;
+                    await _botClient.SendTextMessageAsync(message.Chat.Id,
+                        "Пожалуйста, введите фамилию и имя пользователя (например, Иванов Иван).:");
+                }
+                else
+                {
+                    MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                }
+
+                break;
+
+            case State.AuthInProgress:
+                // Аунтификация пользователя
+                var loginPassCheck = Authentication(message);
+                if (_currentState == State.Authenticated)
+                {
+                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"{loginPassCheck}. Вы авторизированы в статусе:{_currentUser.Roles}");                   
+                    if (_currentUser.Roles != Roles.Guest)
                     {
-                        _currentState = State.AuthInProgress;
-                        await RequestLoginPassword(message.Chat.Id);
-                    }
-                    else if (message.Text.StartsWith("/reg"))
-                    {
-                        _currentState = State.RegInProgress;
-                        await RequestLoginPassword(message.Chat.Id);
+                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
                     }
                     else
                     {
                         await _botClient.SendTextMessageAsync(message.Chat.Id,
-                            "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                         "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
                     }
 
-                    break;
+                }
+                else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
 
-                case State.RegInProgress:
-                    // Регистрация пользователя
-                    Registration(message);
-                    if (_currentState == State.Registered)
-                        ShowMainMenu(message.Chat.Id, _currentUser.Roles);
-                    else await RequestLoginPassword(message.Chat.Id);
-                    break;
+                break;
 
-                case State.Registered:
-                    if (message.Text.StartsWith("/addName"))
-                    {
-                        _currentState = State.AddingUser;
-                        await _botClient.SendTextMessageAsync(message.Chat.Id,
-                            "Пожалуйста, введите фамилию и имя пользователя (например, Иванов Иван).:");
-                    }
-                    else
-                    {
-                        ShowMainMenu(message.Chat.Id, _currentUser.Roles);
-                    }
+            case State.Authenticated:
 
-                    break;
-
-                case State.AuthInProgress:
-                    // Аунтификация пользователя
-                    var loginPassCheck = Authentication(message);
-                    if (_currentState == State.Authenticated)
-                    {
-                        await _botClient.SendTextMessageAsync(message.Chat.Id, $"{loginPassCheck}. Вы авторизированы в статусе:{_currentUser.Roles}");
-                        //_currentState = State.Start;
-                        if (_currentUser.Roles != Roles.Guest)
+                switch (_currentUser.Roles)
+                {
+                    case Roles.Engineer:
+                        if (message.Text.StartsWith("/list"))
                         {
-                            ShowMainMenu(message.Chat.Id, _currentUser.Roles);
+                            var engineersList = engineerLogic.List();
+                            var count = 0;
+                            foreach (var item in engineersList)
+                            {
+                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"#{count}:{item.Name.ToString()}");
+                                count++;
+                            }
+                        }
+                        else if (message.Text.StartsWith("/exit"))
+                        {
+                            _stateAction = StateAction.Start;
+                            _currentState = State.Start;
+                            _stateAdd = StateAdd.Start;
+                            _currentUser.Roles = Roles.Guest;
+
+                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                            "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
                         }
                         else
                         {
-                            await _botClient.SendTextMessageAsync(message.Chat.Id,
-                             "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                            MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
                         }
 
-                    }
-                    else await RequestLoginPassword(message.Chat.Id);
-                    break;
+                        break;
 
-                case State.Authenticated:
+                    case Roles.Admin:
+                        if (!message.Text.StartsWith("/exit"))
+                        {
+                            _stateAction = StatusSelect.StatusSelector(message.Text);
+                        }
 
-                    switch (_currentUser.Roles)
-                    {
-                        case Roles.Engineer:
-                            if (message.Text.StartsWith("/list"))
-                            {
-                                var engineersList = engineerLogic.List();
-                                var count = 0;
-                                foreach (var item in engineersList)
+                        else if (message.Text.StartsWith("/exit"))
+                        {
+                            _stateAction = StateAction.Start;
+                            _currentState = State.Start;
+                            _stateAdd = StateAdd.Start;
+                            _currentUser.Roles = Roles.Guest;
+
+                            MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                            "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
+                        }
+                        else
+                        {
+                            MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                        }
+                        switch (_stateAction)
+                        {
+                            case StateAction.AdminAdd:
+                                switch (_stateAdd)
                                 {
-                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"#{count}:{item.Name.ToString()}");
-                                    count++;
+                                    case StateAdd.Start:
+                                        _stateAdd = StateAdd.InProgress;
+                                        await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        FillingUser(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                            "Пожалуйста, введите фамилию и имя пользователя (например, Иванов Иван).:");
+                                        }
+                                        else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            var newAdmin = adminLogic.Add(message.Text, _currentUser);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, newAdmin);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        break;
                                 }
-                            }
-                            else if (message.Text.StartsWith("/exit"))
-                            {
-                                _currentState = State.Start;
-                                await _botClient.SendTextMessageAsync(message.Chat.Id,
-                                "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
-                            }
-                            else
-                            {
-                                ShowMainMenu(message.Chat.Id, _currentUser.Roles);
-                            }
+                                break;
+                        }
 
-                            break;
-                    }
-                    break;
+                        break;
+                }
 
-                case State.AddingUser:
-                    if (!message.Text.IsNullOrEmpty())
-                    {
-                        var newUser = engineerLogic.Add(message.Text, _currentUser);
-                        _currentUser.Roles = Roles.Engineer;
-                        await _botClient.SendTextMessageAsync(message.Chat.Id, newUser);
-                    }
-                    efCoreContext.Dispose();
-                    _currentState = State.Start;
+                break;
 
-                    break;
 
-                default:
-                    break;
-            }
+            case State.AddingUser:
+                if (!message.Text.IsNullOrEmpty())
+                {
+                    var newUser = engineerLogic.Add(message.Text, _currentUser);
+                    _currentUser.Roles = Roles.Engineer;
+                    await _botClient.SendTextMessageAsync(message.Chat.Id, newUser);
+                }
+                efCoreContext.Dispose();
+                _currentState = State.Start;
+
+                break;
+
+            default:
+                break;
         }
+
+
+        //if (update.Type == UpdateType.Message && update.Message is { })
+        //{
+
+        //}
     }
 
-    private static async Task RequestLoginPassword(long chatId)
-    {
-        await _botClient.SendTextMessageAsync(chatId,
-            "Введите логин и пароль (пример: User123 Password123):"); // Логика получения логина
-    }
+    //private static async Task RequestLoginPassword(long chatId)
+    //{
+    //    await _botClient.SendTextMessageAsync(chatId,
+    //        "Введите логин и пароль (пример: User123 Password123):"); // Логика получения логина
+    //}
 
     private static void Registration(Message message)
     {
@@ -226,54 +310,70 @@ class Program
         return "Логин или пароль введены неправильно";
     }
 
-
-    private static void ShowMainMenu(long chatId, Roles roles)
+    private static void FillingUser(Message message)
     {
-        switch (_currentUser.Roles)
+        //TODO auth logic goes here
+        //just for show case
+        _stateAdd = !string.IsNullOrWhiteSpace(message.Text) && message.Text.Split(" ").Length > 1
+            ? StateAdd.Finish
+            : StateAdd.InProgress;
+        if (_stateAdd == StateAdd.Finish)
         {
-            case Roles.Guest:
-                var guestKeyboard = new ReplyKeyboardMarkup(new[]
-{
-                     new[] { new KeyboardButton("/addName"), new KeyboardButton("/exit") }
-                });
-                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: guestKeyboard);
-                break;
+            var loginPassword = message.Text.Split();
 
-            case Roles.Engineer:
-                var engineerKeyboard = new ReplyKeyboardMarkup(new[]
-                {
-                     new[] { new KeyboardButton( "/list" ), new KeyboardButton("/exit") }
-                });
-                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: engineerKeyboard);
-                break;
-
-            case Roles.Admin:
-                var adminKeyboard = new ReplyKeyboardMarkup(new[]
-                {
-                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-                });
-                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: adminKeyboard);
-                break;
-
-            case Roles.ChiefEngineer:
-                var chiefEngineerKeyboard = new ReplyKeyboardMarkup(new[]
-                {
-                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-                });
-                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: chiefEngineerKeyboard);
-                break;
-
-            case Roles.ProjectManager:
-                var projectManagerKeyboard = new ReplyKeyboardMarkup(new[]
-                {
-                     new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-                });
-                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: projectManagerKeyboard);
-                break;
-
+            _currentUser.Login = loginPassword[0];
+            _currentUser.Password = loginPassword[1];
         }
-
     }
+
+
+    //    private static void ShowMainMenu(long chatId, Roles roles)
+    //    {
+    //        switch (_currentUser.Roles)
+    //        {
+    //            case Roles.Guest:
+    //                var guestKeyboard = new ReplyKeyboardMarkup(new[]
+    //{
+    //                     new[] { new KeyboardButton("/addName"), new KeyboardButton("/exit") }
+    //                });
+    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: guestKeyboard);
+    //                break;
+
+    //            case Roles.Engineer:
+    //                var engineerKeyboard = new ReplyKeyboardMarkup(new[]
+    //                {
+    //                     new[] { new KeyboardButton( "/list" ), new KeyboardButton("/exit") }
+    //                });
+    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: engineerKeyboard);
+    //                break;
+
+    //            case Roles.Admin:
+    //                var adminKeyboard = new ReplyKeyboardMarkup(new[]
+    //                {
+    //                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+    //                });
+    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: adminKeyboard);
+    //                break;
+
+    //            case Roles.ChiefEngineer:
+    //                var chiefEngineerKeyboard = new ReplyKeyboardMarkup(new[]
+    //                {
+    //                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+    //                });
+    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: chiefEngineerKeyboard);
+    //                break;
+
+    //            case Roles.ProjectManager:
+    //                var projectManagerKeyboard = new ReplyKeyboardMarkup(new[]
+    //                {
+    //                     new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
+    //                });
+    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: projectManagerKeyboard);
+    //                break;
+
+    //        }
+
+    //    }
 
     private static Task ErrorHandler(ITelegramBotClient botClient, Exception error,
         CancellationToken cancellationToken)
@@ -291,145 +391,3 @@ class Program
     }
 }
 
-
-
-
-
-
-
-//private static async Task RequestAuthorization(long chatId)
-//{
-//    await _botClient.SendTextMessageAsync(chatId,
-//        "Введи те логин и пароль (пример: User123 Password123):"); // Логика получения логина
-//}
-
-//private static void Authorize(Message message)
-//{
-//    //TODO auth logic goes here
-//    //just for show case
-//    _currentState = !string.IsNullOrWhiteSpace(message.Text) && message.Text.Split(" ").Length > 1
-//        ? State.Authenticated
-//        : State.AuthInProgress;
-//    if (_currentState == State.Authenticated)
-//    {
-//        var loginPassword = message.Text.Split();
-
-//        _currentUser.Login = loginPassword[0];
-//        _currentUser.Password = loginPassword[1];
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
-//using Telegram.Bot;
-//using Telegram.Bot.Polling;
-//using Telegram.Bot.Types;
-//using TelegramBot.Handlers;
-
-
-//namespace TelegramBot
-//{
-//    public class Program
-//    {
-//        static async Task SendMenu(ITelegramBotClient client, Update update)
-//        {
-//            await client.SendTextMessageAsync(chatId: update.Message!.Chat.Id,
-//                  text: "Выберите меню:\n\n" +
-//                  "/addBuild - добавить здание\n" +
-//                  "/addAdmin - добавить админа\n" +
-//                  "/exit - вернуться в главное меню");
-//        }
-
-//        enum ChatMode
-//        {
-//            Initial = 0,
-//            AddBuild = 1,
-//            AddAdmin = 2
-//        }
-
-//        public static async Task Main()
-//        {
-//            var botClient = new TelegramBotClient("6527030864:AAH1uKB7y9yTXg7DXZnAQo8fSQxRejrTSYQ");
-
-//            var dict = new Dictionary<long, ChatMode>();
-
-//            var ro = new ReceiverOptions
-//            {
-//                AllowedUpdates = new Telegram.Bot.Types.Enums.UpdateType[] { }
-//            };
-
-//            botClient.StartReceiving(updateHandler: Handler, pollingErrorHandler: ErrorHandler, receiverOptions: ro);
-
-//            Console.WriteLine("Стартовали");
-
-//            await Task.Delay(Timeout.Infinite);
-
-
-//            async Task Handler(ITelegramBotClient client, Update update, CancellationToken ct)
-//            {
-//                //var message = update.Message;
-
-//                //var adminHandler = new AdminHandler();
-
-//                //var buildingHandler = new BuildingHandler();
-
-//                if (!dict.TryGetValue(update.Message!.Chat.Id, out var state))
-//                {
-//                    dict.Add(update.Message!.Chat.Id, ChatMode.Initial);
-//                }
-
-//                state = dict[update.Message!.Chat.Id];
-
-
-//                if (update.Message.Text == "/exit")
-//                {
-//                    dict[update.Message!.Chat.Id] = ChatMode.Initial;
-
-//                    await SendMenu(client, update);
-//                }
-
-//                else
-//                {
-//                    switch (state)
-//                    {
-//                        case ChatMode.AddBuild:
-//                            await BuildingHandler.Add(client, update, ct);
-//                            break;
-//                        //case ChatMode.AddAdmin:
-//                        //    await AdminHandler.Add(client, update, ct);
-//                        //    break;
-//                        default:
-//                            switch (update.Message.Text)
-//                            {
-//                                case "/addBuild":
-//                                    await BuildingHandler.Add(client, update, ct);
-//                                    dict[update.Message!.Chat.Id] = ChatMode.AddBuild;
-//                                    break;
-//                                //case "/addAdmin":
-//                                //    await AdminHandler.Add(client, update, ct);
-//                                //    dict[update.Message!.Chat.Id] = ChatMode.AddAdmin;
-//                                //    break;
-//                                default:
-//                                    await SendMenu(client, update);
-//                                    break;
-//                            }
-//                            break;
-//                    }
-//                }
-//            }
-
-//            async Task ErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken ct)
-//            {
-//                Console.WriteLine("");
-//            }
-//        }
-//    }
-
-//}

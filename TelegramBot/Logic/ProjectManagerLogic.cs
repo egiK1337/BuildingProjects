@@ -4,7 +4,7 @@ using ServiceLayer.ProjectManagerServices;
 
 namespace TelegramBot.TelegramServices
 {
-    public class ProjectManagerLogic
+    internal class ProjectManagerLogic
     {
         private readonly ProjectManagerAddServices _projectManagerAddServices;
         private readonly ProjectManagerDeleteServices _projectManagerDeleteServices;
@@ -16,7 +16,7 @@ namespace TelegramBot.TelegramServices
             _projectManagerAddServices = new ProjectManagerAddServices(context);
             _projectManagerDeleteServices = new ProjectManagerDeleteServices(context);
             _projectManagerEditServices = new ProjectManagerEditServices(context);
-            _projectManagerListServices = new ProjectManagerListServices(context);          
+            _projectManagerListServices = new ProjectManagerListServices(context);
         }
 
         //public static void ProjectManagerAdd(string str)
