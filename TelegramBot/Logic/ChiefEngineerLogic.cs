@@ -19,9 +19,9 @@ namespace TelegramBot.TelegramServices
             _chiefEngineerListServices = new ChiefEngineerListServices(context);
         }
 
-        public string Add(string enterString)
+        public string Add(string enterString, User user)
         {
-            return _chiefEngineerAddServices.Add(enterString);
+            return _chiefEngineerAddServices.Add(enterString, user);
         }
 
         public string Delete(int id)

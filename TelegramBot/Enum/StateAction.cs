@@ -15,6 +15,8 @@ namespace TelegramBot.Enum
         ChiefEngineerList,
         AdminList,
         EngineerList,
-        ProjectManagerList
+        ProjectManagerList,
+        BuildList,
+        Error
     }
 }

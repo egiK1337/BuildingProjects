@@ -17,13 +17,18 @@ namespace ServiceLayer.EngineerServices
         {
             if (enterEngineer != null)
             {
-                var check = _context.Engineers
+                var engineerNamecheck = _context.Engineers
                     .Where(b => b.Name.ToUpper().Trim() == enterEngineer.ToUpper().Trim())
                     .FirstOrDefault();
-                if (check != null)
+                var UserLoginCheck = _context.Engineers
+                    .Where(u => u.User.Login.ToUpper().Trim() == user.Login.ToUpper().Trim())
+                    .FirstOrDefault();
+
+                if (engineerNamecheck != null || UserLoginCheck != null)
                 {
                     return "Такой инженер уже есть в базе";
                 }
+
                 var newEngineer = new Engineer()
                 {
                     Name = enterEngineer,
@@ -35,6 +40,7 @@ namespace ServiceLayer.EngineerServices
                     }
 
                 };
+
                 _context.Add(newEngineer);
                 _context.SaveChanges();
                 return $"Инженер {enterEngineer} добавлен в базу";

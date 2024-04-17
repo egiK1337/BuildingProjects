@@ -1,6 +1,6 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
-
+using System.Data.Entity;
 
 namespace ServiceLayer.BuildingServices
 {
@@ -13,8 +13,12 @@ namespace ServiceLayer.BuildingServices
             _context = context;
         }
         public List<Building> List()
-        {           
-            return _context.Buildings.ToList();
+        {
+            return _context.Buildings
+                  .Include(e => e.Engineer)
+                  .Include(c => c.ChiefEngineer)
+                  .Include(p => p.ProjectManager)
+                  .ToList();
         }
     }
 }

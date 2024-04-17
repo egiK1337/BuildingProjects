@@ -28,9 +28,9 @@ namespace TelegramBot.TelegramServices
         //    projectManagerAddServices.Add(str);
         //}
 
-        public string Add(string enterString)
+        public string Add(string enterString, User user)
         {
-            return _projectManagerAddServices.Add(enterString);
+            return _projectManagerAddServices.Add(enterString, user);
         }
 
         public string Delete(int id)

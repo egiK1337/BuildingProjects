@@ -13,14 +13,18 @@ namespace ServiceLayer.ProjectManagerServices
             _context = context;
         }
 
-        public string Add(string enterProjectManager)
+        public string Add(string enterProjectManager, User user)
         {
             if (enterProjectManager != null)
             {
-                var check = _context.ProjectManagers
+                var projectManagerNamecheck = _context.ProjectManagers
                     .Where(b => b.Name.ToUpper().Trim() == enterProjectManager.ToUpper().Trim())
                     .FirstOrDefault();
-                if (check != null)
+                var UserLoginCheck = _context.ProjectManagers
+                    .Where(u => u.User.Login.ToUpper().Trim() == user.Login.ToUpper().Trim())
+                    .FirstOrDefault();
+
+                if (projectManagerNamecheck != null || UserLoginCheck != null)
                 {
                     return "Такой руководитель проекта уже есть в базе";
                 }

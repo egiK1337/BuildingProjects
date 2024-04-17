@@ -1,6 +1,6 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
-
+using User = DataLayer.EfClasses.User;
 
 namespace ServiceLayer.ChiefEngineerServices
 {
@@ -13,14 +13,18 @@ namespace ServiceLayer.ChiefEngineerServices
             _context = context;
         }
 
-        public string Add(string enterChiefEngineer)
+        public string Add(string enterChiefEngineer, User user)
         {
             if (enterChiefEngineer != null)
             {
-                var check = _context.ChiefEngineers
+                var сhiefEngineerNamecheck = _context.ChiefEngineers
                     .Where(b => b.Name.ToUpper().Trim() == enterChiefEngineer.ToUpper().Trim())
                     .FirstOrDefault();
-                if (check != null)
+                var UserLoginCheck = _context.ChiefEngineers
+                    .Where(u => u.User.Login.ToUpper().Trim() == user.Login.ToUpper().Trim())
+                    .FirstOrDefault();
+
+                if (сhiefEngineerNamecheck != null || UserLoginCheck != null)
                 {
                     return "Такой главный инженер уже есть в базе";
                 }

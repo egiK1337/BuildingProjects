@@ -1,9 +1,8 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
-using ServiceLayer.BuildingServices;
 using ServiceLayer.UserServices;
 using Telegram.Bot;
-using Telegram.Bot.Types;
+
 using User = DataLayer.EfClasses.User;
 
 namespace TelegramBot.TelegramServices
@@ -21,5 +20,13 @@ namespace TelegramBot.TelegramServices
         {
             return _userAuthorizationServices.RoleFinder(user);
         }
+
+        public static async Task RequestId(long chatId, ITelegramBotClient botClient)
+        {
+            await botClient.SendTextMessageAsync(chatId,
+                "Введите Id пользователя которого неообходимо удалить (пример: 1):");
+        }
+
+
     }
 }
