@@ -1,5 +1,6 @@
-﻿using DataLayer.EfCode;
-
+﻿using DataLayer.EfClasses;
+using DataLayer.EfCode;
+using System.Data.Entity;
 
 namespace ServiceLayer.ProjectManagerServices
 {
@@ -11,18 +12,42 @@ namespace ServiceLayer.ProjectManagerServices
         {
             _context = context;
         }
-        public string Edit(string name)
+        public string Edit(string _userId, string _buildId)
         {
-            if (name != null)
+            int.TryParse(_userId, out var userId);
+            var projectManager = _context.ProjectManagers.FirstOrDefault(e => e.Id == userId);
+
+            if (projectManager != null)
             {
-                var check = _context.ProjectManagers
-                       .Where(i => i.Name.ToUpper().Trim() == name.ToUpper().Trim())
-                       .FirstOrDefault();
-                if (check != null)
+                int.TryParse(_buildId, out var buildId);
+                var building = _context.Buildings.Where(b => b.Id == buildId).Include(x => projectManager).FirstOrDefault();
+
+                if (building != null)
                 {
-                    check.Name = name;
+                    if (building.ProjectManager != null)
+                    {
+                        building.ProjectManager.Name = projectManager.Name;
+                        building.ProjectManager.Id = projectManager.Id;
+                        building.ProjectManager.BuildingId = building.Id;
+                        building.ProjectManager.User = projectManager.User;
+                    }
+                    else
+                    {
+                        building.ProjectManager = new ProjectManager
+                        {
+                            Id = projectManager.Id,
+                            Name = projectManager.Name,
+                            BuildingId = building.Id,
+                            User = projectManager.User 
+                        };
+                    }
+
                     _context.SaveChanges();
-                    return $"Руководитель проекта {check.Name} обновлён";
+                    return $"Руководитель проекта: {projectManager.Name} назначен на объект: {building.Name}";
+                }
+                else
+                {
+                    return $"Такого руководителя проекта нет";
                 }
             }
             return "Такого руководителя проекта нет";

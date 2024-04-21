@@ -31,7 +31,12 @@ namespace ServiceLayer.ProjectManagerServices
                 var newProjectManager = new ProjectManager()
                 {
                     Name = enterProjectManager,
-                    User = new User() { Roles = Roles.ProjectManager }
+                    User = new User() 
+                    {
+                        Login = user.Login,
+                        Password = user.Password,
+                        Roles = Roles.ProjectManager 
+                    }
                 };
                 _context.Add(newProjectManager);
                 _context.SaveChanges();
@@ -39,50 +44,5 @@ namespace ServiceLayer.ProjectManagerServices
             }
             return "Вы не ввели имя руководителя проекта";
         }
-
-        //public void Add()
-        //{
-        //var newProjectManager = new ProjectManager()
-        //{
-        //    Name = "Василий Васильевич Васильев",
-        //    Building = new Building
-        //    {
-        //        Name = "Карамельный домик",
-        //        ChiefEngineer = new ChiefEngineer
-        //        {
-        //            Name = "Пётр Петрович Петров",
-        //            User = new User
-        //            {
-        //                Login = "2",
-        //                Password = "2",
-        //                Roles = Roles.ChiefEnginer
-        //            }
-        //        },
-        //        Engineer = new List<Engineer>()
-        //        {
-        //            new Engineer
-        //            {
-        //                Name = "Игорь Игоревич Игорев",
-        //                User = new User
-        //                {
-        //                    Login = "3",
-        //                    Password = "3",
-        //                    Roles= Roles.Engineer
-        //                }
-        //            }
-        //        }
-        //    },
-        //    User = new User
-        //    {
-        //        Login = "1",
-        //        Password = "1",
-        //        Roles = Roles.ProjectManager
-        //    }
-        //};
-
-        //_context.Add(newProjectManager);
-        //_context.SaveChanges();
-        //}
-
     }
 }

@@ -1,6 +1,4 @@
 ﻿
-
-using ServiceLayer.Abstractions.DTO.Admin;
 using TelegramBot.Enum;
 
 namespace TelegramBot.Handlers
@@ -11,20 +9,28 @@ namespace TelegramBot.Handlers
         {
             var dict = new Dictionary<string, StateAction>()
             {
-                {"/Start", StateAction.Start},
+                {"/start", StateAction.Start},
                 {"/adminAdd", StateAction.AdminAdd},
                 {"/engineerAdd", StateAction.EngineerAdd},
                 {"/chiefEngineerAdd", StateAction.ChiefEngineerAdd},
                 {"/projectManagerAdd", StateAction.ProjectManagerAdd},
+                {"/buildAdd", StateAction.BuildAdd},
+                {"/engineerAddToBuild", StateAction.EngineerAddToBuild},
+                {"/chiefEngineerAddToBuild", StateAction.ChiefEngineerAddToBuild},
+                {"/projectManagerAddToBuild", StateAction.ProjectManagerAddToBuild},
                 {"/adminDel", StateAction.AdminDel},
                 {"/engineerDel", StateAction.EngineerDel},
                 {"/chiefEngineerDel", StateAction.ChiefEngineerDel},
                 {"/projectManagerDel", StateAction.ProjectManagerDel},
+                {"/engineerDelBuild", StateAction.EngineerDelBuild},
+                {"/chiefEngineerDelBuild", StateAction.ChiefEngineerDelBuild},
+                {"/projectManagerDelBuild", StateAction.ProjectManagerDelBuild},
                 {"/adminList", StateAction.AdminList},
                 {"/engineerList", StateAction.EngineerList},
                 {"/chiefEngineerList", StateAction.ChiefEngineerList},
                 {"/projectManagerList", StateAction.ProjectManagerList},
-                {"/BuildList", StateAction.BuildList}
+                {"/buildList", StateAction.BuildList},
+                {"/userList", StateAction.UserList}
             };
 
             StateAction stateAction = new StateAction();
@@ -39,7 +45,7 @@ namespace TelegramBot.Handlers
                 return StateAction.Error;
             }
 
-           
+
         }
 
     }

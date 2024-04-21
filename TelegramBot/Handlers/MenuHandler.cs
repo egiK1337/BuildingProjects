@@ -38,7 +38,7 @@ namespace TelegramBot.Handlers
                         new KeyboardButton( "/projectManagerAdd" ),
                         new KeyboardButton( "/adminDel" ),
                         new KeyboardButton( "/projectManagerDel" ),
-                        new KeyboardButton("/exit")
+                        new KeyboardButton( "/exit")
                     }
                 });
                     botClient.SendTextMessageAsync(chatId, "Выберите действие:", replyMarkup: adminKeyboard);
@@ -51,10 +51,11 @@ namespace TelegramBot.Handlers
                     {
                         new KeyboardButton( "/buildList" ),
                         new KeyboardButton( "/engineerAdd" ),
+                        new KeyboardButton( "/engineerAddToBuild" ),
                         new KeyboardButton( "/engineerDelBase" ),
                         new KeyboardButton( "/engineerDelBuild" ),
                         new KeyboardButton( "/engineerList" ),
-                        new KeyboardButton("/exit")
+                        new KeyboardButton( "/exit")
                     }
                 });
                     botClient.SendTextMessageAsync(chatId, "Выберите действие:", replyMarkup: chiefEngineerKeyboard);
@@ -67,11 +68,12 @@ namespace TelegramBot.Handlers
                     {
                         new KeyboardButton( "/buildList" ),
                         new KeyboardButton( "/chiefEngineerAdd" ),
+                        new KeyboardButton( "/chiefEngineerAddToBuild" ),
                         new KeyboardButton( "/buildAdd" ),
                         new KeyboardButton( "/chiefEngineerDelBase" ),
                         new KeyboardButton( "/chiefEngineerDelBuild" ),
                         new KeyboardButton( "/chiefEngineerList" ),
-                        new KeyboardButton("/exit")
+                        new KeyboardButton( "/exit")
                     }
                 });
                     botClient.SendTextMessageAsync(chatId, "Выберите действие:", replyMarkup: projectManagerKeyboard);

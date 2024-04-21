@@ -38,9 +38,9 @@ namespace TelegramBot.TelegramServices
             return _projectManagerDeleteServices.Delete(id);
         }
 
-        public string Edit(string name)
+        public string Edit(string _userId, string _buildId)
         {
-            return _projectManagerEditServices.Edit(name);
+            return _projectManagerEditServices.Edit(_userId, _buildId);
         }
 
         public List<ProjectManager> List()

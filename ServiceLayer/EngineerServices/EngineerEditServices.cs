@@ -1,5 +1,6 @@
-﻿using DataLayer.EfCode;
-
+﻿using DataLayer.EfClasses;
+using DataLayer.EfCode;
+using System.Data.Entity;
 
 namespace ServiceLayer.EngineerServices
 {
@@ -11,18 +12,33 @@ namespace ServiceLayer.EngineerServices
         {
             _context = context;
         }
-        public string Edit(string name)
+        public string Edit(string _userId, string _buildId)
         {
-            if (name != null)
+            int.TryParse(_userId, out var userId);
+            var engineer = _context.Engineers.FirstOrDefault(e => e.Id == userId);
+
+            if (engineer != null)
             {
-                var check = _context.Engineers
-                       .Where(i => i.Name.ToUpper().Trim() == name.ToUpper().Trim())
-                       .FirstOrDefault();
-                if (check != null)
+                int.TryParse(_buildId, out var buildId);
+                var building = _context.Buildings.Where(b => b.Id == buildId).Include(x => engineer).FirstOrDefault();
+
+                if (building != null)
                 {
-                    check.Name = name;
+                    if(building.Engineer != null)
+                    {
+                        building.Engineer.Add(engineer);
+                    }
+                    else
+                    {
+                        building.Engineer = new List<Engineer> { engineer };
+                    }
+                    
                     _context.SaveChanges();
-                    return $"Инженер {check.Name} обновлёно";
+                    return $"Инженер: {engineer.Name} назначен на объект: {building.Name}";
+                }
+                else
+                {
+                    return $"Такого строенния нет";
                 }
             }
             return "Такого инженера нет";

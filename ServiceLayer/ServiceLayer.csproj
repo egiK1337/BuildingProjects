@@ -26,4 +26,8 @@
     <ProjectReference Include="..\ServiceLayer.Abstractions\ServiceLayer.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Validations\AdminValidations\" />
+  </ItemGroup>
+
 </Project>

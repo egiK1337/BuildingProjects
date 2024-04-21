@@ -36,9 +36,14 @@ namespace TelegramBot.TelegramServices
             return _buldingEditServices.Edit(name);
         }
 
-        public List<Building> List()
+        public List<string> List()
         {
             return _buldingListServices.List();
+        }
+
+        public List<string> ListWithoutEmployees()
+        {
+            return _buldingListServices.ListWithoutEmployees();
         }
     }
 }

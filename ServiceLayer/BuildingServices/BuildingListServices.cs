@@ -12,13 +12,56 @@ namespace ServiceLayer.BuildingServices
         {
             _context = context;
         }
-        public List<Building> List()
+
+        public List<string> ListWithoutEmployees()
         {
-            return _context.Buildings
+            var Employeelist = _context.Buildings.ToList();
+
+            var list = new List<string>();
+
+            foreach (var employee in Employeelist)
+            {
+                list.Add("Id: " + employee.Id + " " + employee.Name);
+            }
+
+            return list;
+        }
+
+        public List<string> List()
+        {
+            var Employeelist = _context.Buildings
                   .Include(e => e.Engineer)
-                  .Include(c => c.ChiefEngineer)
-                  .Include(p => p.ProjectManager)
                   .ToList();
+
+            var data = "";
+
+            var EmployeeListToString = new List<string>();
+
+            foreach (var item in Employeelist)
+            {
+                if (item.Name != null)
+                {
+                    data = data + "Id:" + item.Id + "; " + "Строение: " + item.Name + "; ";
+                }
+                else if (item.Engineer != null)
+                {
+                    data = data + "Id:" + item.Id + "; " + " Инженер - " + item.Engineer[1].Name + "; Должность: " + Roles.Engineer + "; ";
+                }
+                else if (item.ChiefEngineer != null)
+                {
+                    data = data + "Id:" + item.Id + "; " + " Главный инженер -  " + item.ChiefEngineer.Name + "; Должность: " + Roles.ChiefEngineer + "; ";
+                }
+                else if (item.ProjectManager != null)
+                {
+                    data = data + "Id:" + item.Id + "; " + " Руководитель проекта -  " + item.ProjectManager.Name + "; Должность: " + Roles.ProjectManager;
+                }
+
+                EmployeeListToString.Add(data);
+                data = "";
+            }
+
+
+            return EmployeeListToString;
         }
     }
 }

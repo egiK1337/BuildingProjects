@@ -9,8 +9,7 @@ namespace TelegramBot.Handlers
     {
         public static void Registration(Message message, State currentState, User currentUser)
         {
-            //TODO auth logic goes here
-            //just for show case
+
             currentState = !string.IsNullOrWhiteSpace(message.Text) && message.Text.Split(" ").Length > 1
                 ? State.Registered
                 : State.RegInProgress;

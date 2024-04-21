@@ -1,23 +1,21 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using Microsoft.IdentityModel.Tokens;
-using System.Diagnostics;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBot.Enum;
 using TelegramBot.Handlers;
 using TelegramBot.TelegramServices;
+
 
 class Program
 {
     private static ITelegramBotClient _botClient;
     private static ReceiverOptions _receiverOptions;
     private static bool _isAuthorized = false;
-
 
     private static StateAction _stateAction;
     private static State _currentState;
@@ -26,13 +24,24 @@ class Program
     //private static State _currentState = State.Start;
     //private static StateAdd _stateAdd = StateAdd.Start;
     private static DataLayer.EfClasses.User _currentUser = new DataLayer.EfClasses.User();
-
-
-    //private static EngineerLogic _engineerLogic;
-
+    private static string _userId;
+    private static string _buildId;
 
     static async Task Main()
     {
+        var efCoreContext = new EfCoreContext();
+
+        var engineerLogic = new EngineerLogic(efCoreContext);
+        var adminLogic = new AdminLogic(efCoreContext);
+        var chiefEngineerLogic = new ChiefEngineerLogic(efCoreContext);
+        var projectManagerLogic = new ProjectManagerLogic(efCoreContext);
+        var buildingLogic = new BuildingLogic(efCoreContext);
+        var userLogic = new UserLogic(efCoreContext);
+
+
+        buildingLogic.List();
+
+
         _botClient =
             new TelegramBotClient(
                 "6527030864:AAH1uKB7y9yTXg7DXZnAQo8fSQxRejrTSYQ"); // Присваиваем нашей переменной значение, в параметре передаем Token, полученный от BotFather
@@ -71,12 +80,10 @@ class Program
         var adminLogic = new AdminLogic(efCoreContext);
         var chiefEngineerLogic = new ChiefEngineerLogic(efCoreContext);
         var projectManagerLogic = new ProjectManagerLogic(efCoreContext);
-        var buildongLogic = new BuildingLogic(efCoreContext);
-
-
+        var buildingLogic = new BuildingLogic(efCoreContext);
+        var userLogic = new UserLogic(efCoreContext);
 
         var message = update.Message;
-
 
         switch (_currentState)
         {
@@ -96,7 +103,6 @@ class Program
                     await _botClient.SendTextMessageAsync(message.Chat.Id,
                         "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
                 }
-
                 break;
 
             case State.RegInProgress:
@@ -105,7 +111,6 @@ class Program
                 if (_currentState == State.Registered)
                     MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
                 else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
-
                 break;
 
             case State.Registered:
@@ -119,7 +124,6 @@ class Program
                 {
                     MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
                 }
-
                 break;
 
             case State.AuthInProgress:
@@ -134,6 +138,8 @@ class Program
                     }
                     else
                     {
+                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                        _currentState = State.Start;
                         await _botClient.SendTextMessageAsync(message.Chat.Id,
                          "Пожалуйста начните работу с аунтификации используя команду /auth или зарегестрируйтесь в системе используя команду /reg.");
                     }
@@ -151,11 +157,9 @@ class Program
                         if (message.Text.StartsWith("/list"))
                         {
                             var engineersList = engineerLogic.List();
-                            var count = 0;
                             foreach (var item in engineersList)
                             {
-                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"#{count}:{item.Name.ToString()}");
-                                count++;
+                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"Id:{item.Id}: {item.Name}");
                             }
                         }
                         else if (message.Text.StartsWith("/exit"))
@@ -182,7 +186,7 @@ class Program
                             if (tempStateAction != StateAction.Error)
                             {
                                 _stateAction = StatusSelect.StatusSelector(message.Text);
-                            }                           
+                            }
                         }
                         else if (message.Text.StartsWith("/exit"))
                         {
@@ -203,13 +207,20 @@ class Program
 
                         switch (_stateAction)
                         {
+                            case StateAction.UserList:
+                                var userList = userLogic.List();
+                                foreach (var item in userList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, item);
+                                }
+                                break;
+
                             case StateAction.AdminAdd:
                                 switch (_stateAdd)
                                 {
                                     case StateAdd.Start:
                                         _stateAdd = StateAdd.InProgress;
                                         await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
-
                                         break;
 
                                     case StateAdd.InProgress:
@@ -220,11 +231,9 @@ class Program
                                             "Пожалуйста, введите фамилию и имя пользователя (например, Иванов Иван).:");
                                         }
                                         else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
-
                                         break;
 
                                     case StateAdd.Finish:
-
                                         if (!message.Text.IsNullOrEmpty())
                                         {
                                             var newAdmin = adminLogic.Add(message.Text, _currentUser);
@@ -236,22 +245,7 @@ class Program
                                         efCoreContext.Dispose();
 
                                         MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
-
                                         break;
-                                }
- 
-                                break;
-
-                            case StateAction.BuildList:
-                                var buildList = buildongLogic.List();
-                                var count = 0;
-                                foreach (var item in buildList)
-                                {
-                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"Id: {item.Id}:  {item.Name.ToString()};" +
-                                        $" Руководитель проекта: {item.ProjectManager.Name};" +
-                                        $" Главный инженер проекта: {item.ChiefEngineer.Name};" +
-                                        $" Инженер: {item.Engineer[0].Name}");
-                                    count++;
                                 }
 
                                 break;
@@ -262,7 +256,6 @@ class Program
                                     case StateAdd.Start:
                                         _stateAdd = StateAdd.InProgress;
                                         await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
-
                                         break;
 
                                     case StateAdd.InProgress:
@@ -273,14 +266,13 @@ class Program
                                             "Пожалуйста, введите фамилию и имя пользователя (например, Иванов Иван).:");
                                         }
                                         else await AuthenticationHandler.RequestLoginPassword(message.Chat.Id, _botClient);
-
                                         break;
 
                                     case StateAdd.Finish:
 
                                         if (!message.Text.IsNullOrEmpty())
                                         {
-                                            var newProjectManager = engineerLogic.Add(message.Text, _currentUser);
+                                            var newProjectManager = projectManagerLogic.Add(message.Text, _currentUser);
                                             await _botClient.SendTextMessageAsync(message.Chat.Id, newProjectManager);
                                         }
                                         _stateAction = StateAction.Start;
@@ -289,18 +281,16 @@ class Program
                                         efCoreContext.Dispose();
 
                                         MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
-
                                         break;
                                 }
-
                                 break;
 
                             case StateAction.AdminDel:
                                 switch (_stateAdd)
                                 {
                                     case StateAdd.Start:
-                                        var AdminList = adminLogic.List();
-                                        foreach (var item in AdminList)
+                                        var adminList = adminLogic.List();
+                                        foreach (var item in adminList)
                                         {
                                             await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
                                         }
@@ -324,8 +314,8 @@ class Program
 
                                         if (!message.Text.IsNullOrEmpty())
                                         {
-                                            var delAdmin = adminLogic.Delete(int.Parse(message.Text));
-                                            await _botClient.SendTextMessageAsync(message.Chat.Id, delAdmin);
+                                            var adminDel = adminLogic.Delete(int.Parse(message.Text));
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, adminDel);
                                         }
                                         _stateAction = StateAction.Start;
                                         _stateAdd = StateAdd.Start;
@@ -336,11 +326,51 @@ class Program
 
                                         break;
                                 }
-
                                 break;
 
-                        }
+                            case StateAction.ProjectManagerDel:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var projectManagerList = projectManagerLogic.List();
+                                        foreach (var item in projectManagerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
 
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                            "Введите Id повторно");
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            var projectManagerDel = projectManagerLogic.Delete(int.Parse(message.Text));
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, projectManagerDel);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+                        }
                         break;
 
                     case Roles.ChiefEngineer:
@@ -368,6 +398,115 @@ class Program
                         else
                         {
                             MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                        }
+                        switch (_stateAction)
+                        {
+                            case StateAction.EngineerList:
+                                var engineersList = engineerLogic.List();
+                                foreach (var item in engineersList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"Id{item.Id}:{item.Name}");
+                                }
+                                break;
+                            case StateAction.BuildList:
+                                var buildList = buildingLogic.List();
+                                foreach (var item in buildList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"{item};");
+                                }
+                                break;
+
+                            case StateAction.EngineerAddToBuild:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var engineerList = engineerLogic.List();
+                                        foreach (var item in engineerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _userId = message.Text;
+                                            var projectList = buildingLogic.ListWithoutEmployees();
+                                            foreach (var item in projectList)
+                                            {
+                                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"{item};");
+                                            }
+                                            await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _buildId = message.Text;
+                                            var addEngineerToBuild = engineerLogic.Edit(_userId, _buildId);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, addEngineerToBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+
+                            case StateAction.EngineerDel:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var engineerList = engineerLogic.List();
+                                        foreach (var item in engineerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                            "Введите Id повторно");
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            var engineerDel = engineerLogic.Delete(int.Parse(message.Text));
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, engineerDel);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
                         }
                         break;
 
@@ -423,7 +562,7 @@ class Program
 
                                         if (!message.Text.IsNullOrEmpty())
                                         {
-                                            var newChiefEngineer = engineerLogic.Add(message.Text, _currentUser);
+                                            var newChiefEngineer = chiefEngineerLogic.Add(message.Text, _currentUser);
                                             await _botClient.SendTextMessageAsync(message.Chat.Id, newChiefEngineer);
                                         }
                                         _stateAction = StateAction.Start;
@@ -431,15 +570,104 @@ class Program
 
                                         efCoreContext.Dispose();
 
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
                                         break;
                                 }
+                                break;
 
+                            case StateAction.BuildAdd:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        _stateAdd = StateAdd.InProgress;
+                                        await AuthenticationHandler.RequestBuildingName(message.Chat.Id, _botClient);
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            _stateAdd = StateAdd.Finish;
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                            "Введите название повторно");
+                                        }
+                                        else await AuthenticationHandler.RequestBuildingName(message.Chat.Id, _botClient);
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            var newBuild = buildingLogic.Add(message.Text);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, newBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                                        break;
+                                }
+                                break;
+
+                            case StateAction.ChiefEngineerDel:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var chiefEngineerList = chiefEngineerLogic.List();
+                                        foreach (var item in chiefEngineerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                                            "Введите Id повторно");
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+                                        break;
+
+                                    case StateAdd.Finish:
+
+                                        if (!message.Text.IsNullOrEmpty())
+                                        {
+                                            var chiefeEngineerDel = engineerLogic.Delete(int.Parse(message.Text));
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, chiefeEngineerDel);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+                                        break;
+                                }
+                                break;
+
+                            case StateAction.ChiefEngineerList:
+                                var chiefEngineersList = engineerLogic.List();
+                                foreach (var item in chiefEngineersList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"Id{item.Id}:{item.Name}");
+                                }
+                                break;
+
+                            case StateAction.BuildList:
+                                var buildList = buildingLogic.List();
+                                foreach (var item in buildList)
+                                {
+                                    await _botClient.SendTextMessageAsync(message.Chat.Id, $"{item};");
+                                }
                                 break;
                         }
-
                         break;
                 }
-
                 break;
 
 
@@ -449,9 +677,10 @@ class Program
                     var newUser = engineerLogic.Add(message.Text, _currentUser);
                     _currentUser.Roles = Roles.Engineer;
                     await _botClient.SendTextMessageAsync(message.Chat.Id, newUser);
+                    MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
                 }
                 efCoreContext.Dispose();
-                _currentState = State.Start;
+                _currentState = State.Authenticated;
 
                 break;
 
@@ -466,11 +695,22 @@ class Program
         //}
     }
 
-    //private static async Task RequestLoginPassword(long chatId)
-    //{
-    //    await _botClient.SendTextMessageAsync(chatId,
-    //        "Введите логин и пароль (пример: User123 Password123):"); // Логика получения логина
-    //}
+
+    private static Task ErrorHandler(ITelegramBotClient botClient, Exception error,
+    CancellationToken cancellationToken)
+    {
+        // Тут создадим переменную, в которую поместим код ошибки и её сообщение 
+        var errorMessage = error switch
+        {
+            ApiRequestException apiRequestException
+                => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            _ => error.ToString()
+        };
+
+        Console.WriteLine(errorMessage);
+        return Task.CompletedTask;
+    }
+
 
     private static void Registration(Message message)
     {
@@ -538,68 +778,5 @@ class Program
         }
     }
 
-
-    //    private static void ShowMainMenu(long chatId, Roles roles)
-    //    {
-    //        switch (_currentUser.Roles)
-    //        {
-    //            case Roles.Guest:
-    //                var guestKeyboard = new ReplyKeyboardMarkup(new[]
-    //{
-    //                     new[] { new KeyboardButton("/addName"), new KeyboardButton("/exit") }
-    //                });
-    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: guestKeyboard);
-    //                break;
-
-    //            case Roles.Engineer:
-    //                var engineerKeyboard = new ReplyKeyboardMarkup(new[]
-    //                {
-    //                     new[] { new KeyboardButton( "/list" ), new KeyboardButton("/exit") }
-    //                });
-    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: engineerKeyboard);
-    //                break;
-
-    //            case Roles.Admin:
-    //                var adminKeyboard = new ReplyKeyboardMarkup(new[]
-    //                {
-    //                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-    //                });
-    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: adminKeyboard);
-    //                break;
-
-    //            case Roles.ChiefEngineer:
-    //                var chiefEngineerKeyboard = new ReplyKeyboardMarkup(new[]
-    //                {
-    //                    new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-    //                });
-    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: chiefEngineerKeyboard);
-    //                break;
-
-    //            case Roles.ProjectManager:
-    //                var projectManagerKeyboard = new ReplyKeyboardMarkup(new[]
-    //                {
-    //                     new[] { new KeyboardButton( "/add" ), new KeyboardButton( "/delete" ), new KeyboardButton( "/update" ) }
-    //                });
-    //                _botClient.SendTextMessageAsync(chatId, "Choose an action:", replyMarkup: projectManagerKeyboard);
-    //                break;
-
-    //        }
-
-    //    }
-
-    private static Task ErrorHandler(ITelegramBotClient botClient, Exception error,
-        CancellationToken cancellationToken)
-    {
-        // Тут создадим переменную, в которую поместим код ошибки и её сообщение 
-        var errorMessage = error switch
-        {
-            ApiRequestException apiRequestException
-                => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-            _ => error.ToString()
-        };
-
-        Console.WriteLine(errorMessage);
-        return Task.CompletedTask;
-    }
 }
 

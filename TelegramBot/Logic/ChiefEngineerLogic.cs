@@ -29,9 +29,9 @@ namespace TelegramBot.TelegramServices
             return _chiefEngineerDeleteServices.Delete(id);
         }
 
-        public string Edit(string name)
+        public string Edit(string _userId, string _buildId)
         {
-            return _chiefEngineerEditServices.Edit(name);
+            return _chiefEngineerEditServices.Edit(_userId, _buildId);
         }
 
         public List<ChiefEngineer> List()
