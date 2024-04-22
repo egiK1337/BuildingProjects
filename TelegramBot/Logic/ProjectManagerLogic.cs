@@ -19,15 +19,6 @@ namespace TelegramBot.TelegramServices
             _projectManagerListServices = new ProjectManagerListServices(context);
         }
 
-        //public static void ProjectManagerAdd(string str)
-        //{
-        //    using var dbContext = new EfCoreContext();
-
-        //    var projectManagerAddServices = new ProjectManagerAddServices(dbContext);
-
-        //    projectManagerAddServices.Add(str);
-        //}
-
         public string Add(string enterString, User user)
         {
             return _projectManagerAddServices.Add(enterString, user);

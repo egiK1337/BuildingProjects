@@ -1,5 +1,7 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
+using Telegram.Bot.Types;
+using User = DataLayer.EfClasses.User;
 
 namespace ServiceLayer.AdminServices
 {
@@ -10,6 +12,24 @@ namespace ServiceLayer.AdminServices
         public AdminAddServices(EfCoreContext context)
         {
             _context = context;
+        }
+
+
+        public void AddAdmin()
+        {
+            
+            var newAdmin = new Admin()
+            {
+                Name = "Admin",
+                User = new User()
+                {
+                    Login = "Admin",
+                    Password = "123",
+                    Roles = Roles.Admin
+                }
+            };
+            _context.Add(newAdmin);
+            _context.SaveChanges();
         }
 
         public string Add(String enterAdminName, User user)
@@ -30,7 +50,6 @@ namespace ServiceLayer.AdminServices
                 var newAdmin = new Admin()
                 {
                     Name = enterAdminName,
-                    Password = enterAdminName,
                     User = new User()
                     {
                         Login = user.Login,

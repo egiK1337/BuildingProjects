@@ -1,6 +1,5 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
-using System.Data.Entity;
 
 namespace ServiceLayer.BuildingServices
 {
@@ -29,32 +28,91 @@ namespace ServiceLayer.BuildingServices
 
         public List<string> List()
         {
-            var Employeelist = _context.Buildings
-                  .Include(e => e.Engineer)
-                  .ToList();
+            var engineers = _context.Engineers
+                .ToList();
+            var engineersBuildingsSelect = engineers
+                .Select(x => x.BuildingId)
+                .ToList();
+            var buildingsEngineers = _context.Buildings
+                .Where(x => engineersBuildingsSelect
+                .Contains(x.Id))
+                .ToList();
+
+            var chiefEngineers = _context.ChiefEngineers
+                .ToList();
+            var chiefEngineersBuildingsSelect = chiefEngineers
+                .Select(x => x.BuildingId).ToList();
+            var buildingsChiefEngineers = _context.Buildings
+                .Where(x => chiefEngineersBuildingsSelect
+                .Contains(x.Id))
+                .ToList();
+
+            var projectManagers = _context.ProjectManagers
+                .ToList();
+            var projectManagersBuildingsSelect = projectManagers
+                .Select(x => x.BuildingId).ToList();
+            var buildingsProjectManagers = _context.Buildings
+                .Where(x => projectManagersBuildingsSelect
+                .Contains(x.Id))
+                .ToList();
 
             var data = "";
 
             var EmployeeListToString = new List<string>();
 
-            foreach (var item in Employeelist)
+            foreach (var item in engineers)
             {
                 if (item.Name != null)
                 {
-                    data = data + "Id:" + item.Id + "; " + "Строение: " + item.Name + "; ";
+                    data = data + "Id:" + item.Id + "; " + "Инженер: " 
+                        + item.Name + "; Должность: " + Roles.Engineer + "; ";
                 }
-                else if (item.Engineer != null)
+                if (item.BuildingId != null)
                 {
-                    data = data + "Id:" + item.Id + "; " + " Инженер - " + item.Engineer[1].Name + "; Должность: " + Roles.Engineer + "; ";
+                    var bE = buildingsEngineers
+                        .FirstOrDefault(x => x.Id == item.BuildingId);
+                    data = data + "Работает на объекте: " 
+                        + "Id:" + bE.Id + "; " + " Здание - " + bE.Name + " ";
                 }
-                else if (item.ChiefEngineer != null)
+
+                EmployeeListToString.Add(data);
+                data = "";
+            }
+
+            foreach (var item in chiefEngineers)
+            {
+                if (item.Name != null)
                 {
-                    data = data + "Id:" + item.Id + "; " + " Главный инженер -  " + item.ChiefEngineer.Name + "; Должность: " + Roles.ChiefEngineer + "; ";
+                    data = data + "Id:" + item.Id + "; " 
+                        + " Главный инженер -  " + item.Name 
+                        + "; Должность: " + Roles.ChiefEngineer + "; ";
                 }
-                else if (item.ProjectManager != null)
+                if (item.BuildingId != null)
                 {
-                    data = data + "Id:" + item.Id + "; " + " Руководитель проекта -  " + item.ProjectManager.Name + "; Должность: " + Roles.ProjectManager;
+                    var bE = buildingsChiefEngineers
+                        .FirstOrDefault(x => x.Id == item.BuildingId);
+                    data = data + "Работает на объекте: " + "Id:" 
+                        + bE.Id + "; " + " Здание - " + bE.Name + " ";
                 }
+                EmployeeListToString.Add(data);
+                data = "";
+            }
+
+            foreach (var item in projectManagers)
+            {
+                if (item.Name != null)
+                {
+                    data = data + "Id:" + item.Id + "; " 
+                        + " Руководитель проекта -  " + item.Name 
+                        + "; Должность: " + Roles.ProjectManager + "; ";
+                }
+                if (item.BuildingId != null)
+                {
+                    var bE = buildingsProjectManagers
+                        .FirstOrDefault(x => x.Id == item.BuildingId);
+                    data = data + "Работает на объекте: " 
+                        + "Id:" + bE.Id + "; " + " Здание - " + bE.Name + " ";
+                } 
 
                 EmployeeListToString.Add(data);
                 data = "";

@@ -24,5 +24,29 @@ namespace ServiceLayer.EngineerServices
 
             return $"Инженер с {id} нет в базе";
         }
+
+        public string DeleteFromBuild(string _userId, string _buildId)
+        {
+            int.TryParse(_userId, out var userId);
+            var engineer = _context.Engineers.FirstOrDefault(e => e.Id == userId);
+
+            if (engineer != null)
+            {
+                int.TryParse(_buildId, out var buildId);
+                var building = _context.Buildings.Where(b => b.Id == buildId).FirstOrDefault();
+
+                if (building != null)
+                {
+                    building.ChiefEngineer = null;
+                    _context.SaveChanges();
+                    return $"Инженер удалён с объекта: {building.Name}";
+                }
+                else
+                {
+                    return $"Инженера нет";
+                }
+            }
+            return "Такого инженера нет";
+        }
     }
 }

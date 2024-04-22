@@ -36,6 +36,7 @@ namespace TelegramBot.Handlers
                         new KeyboardButton( "/userList" ),
                         new KeyboardButton( "/adminAdd" ),
                         new KeyboardButton( "/projectManagerAdd" ),
+                        new KeyboardButton( "/projectManagerAddToBuild" ),
                         new KeyboardButton( "/adminDel" ),
                         new KeyboardButton( "/projectManagerDel" ),
                         new KeyboardButton( "/exit")
@@ -50,9 +51,8 @@ namespace TelegramBot.Handlers
                     new[]
                     {
                         new KeyboardButton( "/buildList" ),
-                        new KeyboardButton( "/engineerAdd" ),
                         new KeyboardButton( "/engineerAddToBuild" ),
-                        new KeyboardButton( "/engineerDelBase" ),
+                        new KeyboardButton( "/engineerDel" ),
                         new KeyboardButton( "/engineerDelBuild" ),
                         new KeyboardButton( "/engineerList" ),
                         new KeyboardButton( "/exit")
@@ -70,7 +70,7 @@ namespace TelegramBot.Handlers
                         new KeyboardButton( "/chiefEngineerAdd" ),
                         new KeyboardButton( "/chiefEngineerAddToBuild" ),
                         new KeyboardButton( "/buildAdd" ),
-                        new KeyboardButton( "/chiefEngineerDelBase" ),
+                        new KeyboardButton( "/chiefEngineerDel" ),
                         new KeyboardButton( "/chiefEngineerDelBuild" ),
                         new KeyboardButton( "/chiefEngineerList" ),
                         new KeyboardButton( "/exit")

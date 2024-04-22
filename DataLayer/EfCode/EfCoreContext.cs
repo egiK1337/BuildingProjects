@@ -25,9 +25,8 @@ namespace DataLayer.EfCode
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=BuildingProjects;User Id=postgres;Password=123;");
+            optionsBuilder.UseNpgsql("Server=127.0.0.1;Port=5432;Database=BdProjects;User Id=postgres;Password=123;");
         }
-
 
 
     }

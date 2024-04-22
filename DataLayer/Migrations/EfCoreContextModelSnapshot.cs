@@ -25,21 +25,6 @@ namespace DataLayer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BuildingEngineer", b =>
-                {
-                    b.Property<int>("BuildingId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EngineerId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("BuildingId", "EngineerId");
-
-                    b.HasIndex("EngineerId");
-
-                    b.ToTable("BuildingEngineer");
-                });
-
             modelBuilder.Entity("DataLayer.EfClasses.Admin", b =>
                 {
                     b.Property<int>("Id")
@@ -49,10 +34,6 @@ namespace DataLayer.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -74,21 +55,11 @@ namespace DataLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ChiefEngineerId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("ProjectManagerId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ChiefEngineerId");
-
-                    b.HasIndex("ProjectManagerId");
 
                     b.ToTable("Buildings");
                 });
@@ -101,7 +72,7 @@ namespace DataLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BuildingId")
+                    b.Property<int?>("BuildingId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -112,6 +83,9 @@ namespace DataLayer.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BuildingId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -126,7 +100,7 @@ namespace DataLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BuildingId")
+                    b.Property<int?>("BuildingId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -137,6 +111,9 @@ namespace DataLayer.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BuildingId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -151,7 +128,7 @@ namespace DataLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("BuildingId")
+                    b.Property<int?>("BuildingId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -162,6 +139,9 @@ namespace DataLayer.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BuildingId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -192,21 +172,6 @@ namespace DataLayer.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("BuildingEngineer", b =>
-                {
-                    b.HasOne("DataLayer.EfClasses.Building", null)
-                        .WithMany()
-                        .HasForeignKey("BuildingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataLayer.EfClasses.Engineer", null)
-                        .WithMany()
-                        .HasForeignKey("EngineerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DataLayer.EfClasses.Admin", b =>
                 {
                     b.HasOne("DataLayer.EfClasses.User", "User")
@@ -218,62 +183,64 @@ namespace DataLayer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DataLayer.EfClasses.Building", b =>
-                {
-                    b.HasOne("DataLayer.EfClasses.ChiefEngineer", "ChiefEngineer")
-                        .WithMany("Building")
-                        .HasForeignKey("ChiefEngineerId");
-
-                    b.HasOne("DataLayer.EfClasses.ProjectManager", "ProjectManager")
-                        .WithMany("Building")
-                        .HasForeignKey("ProjectManagerId");
-
-                    b.Navigation("ChiefEngineer");
-
-                    b.Navigation("ProjectManager");
-                });
-
             modelBuilder.Entity("DataLayer.EfClasses.ChiefEngineer", b =>
                 {
+                    b.HasOne("DataLayer.EfClasses.Building", "Building")
+                        .WithOne("ChiefEngineer")
+                        .HasForeignKey("DataLayer.EfClasses.ChiefEngineer", "BuildingId");
+
                     b.HasOne("DataLayer.EfClasses.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Building");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("DataLayer.EfClasses.Engineer", b =>
                 {
+                    b.HasOne("DataLayer.EfClasses.Building", "Building")
+                        .WithOne("Engineer")
+                        .HasForeignKey("DataLayer.EfClasses.Engineer", "BuildingId");
+
                     b.HasOne("DataLayer.EfClasses.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Building");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("DataLayer.EfClasses.ProjectManager", b =>
                 {
+                    b.HasOne("DataLayer.EfClasses.Building", "Building")
+                        .WithOne("ProjectManager")
+                        .HasForeignKey("DataLayer.EfClasses.ProjectManager", "BuildingId");
+
                     b.HasOne("DataLayer.EfClasses.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Building");
+
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DataLayer.EfClasses.ChiefEngineer", b =>
+            modelBuilder.Entity("DataLayer.EfClasses.Building", b =>
                 {
-                    b.Navigation("Building");
-                });
+                    b.Navigation("ChiefEngineer");
 
-            modelBuilder.Entity("DataLayer.EfClasses.ProjectManager", b =>
-                {
-                    b.Navigation("Building");
+                    b.Navigation("Engineer");
+
+                    b.Navigation("ProjectManager");
                 });
 #pragma warning restore 612, 618
         }

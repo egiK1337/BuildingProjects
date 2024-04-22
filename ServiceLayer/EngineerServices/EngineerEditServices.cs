@@ -1,4 +1,4 @@
-﻿using DataLayer.EfClasses;
+﻿
 using DataLayer.EfCode;
 using System.Data.Entity;
 
@@ -24,15 +24,7 @@ namespace ServiceLayer.EngineerServices
 
                 if (building != null)
                 {
-                    if(building.Engineer != null)
-                    {
-                        building.Engineer.Add(engineer);
-                    }
-                    else
-                    {
-                        building.Engineer = new List<Engineer> { engineer };
-                    }
-                    
+                    building.Engineer = engineer;
                     _context.SaveChanges();
                     return $"Инженер: {engineer.Name} назначен на объект: {building.Name}";
                 }

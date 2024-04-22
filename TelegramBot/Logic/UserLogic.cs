@@ -1,7 +1,6 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using ServiceLayer.UserServices;
-using System.Collections;
 using Telegram.Bot;
 
 using User = DataLayer.EfClasses.User;
@@ -33,7 +32,7 @@ namespace TelegramBot.TelegramServices
         public static async Task RequestBuildName(long chatId, ITelegramBotClient botClient)
         {
             await botClient.SendTextMessageAsync(chatId,
-                "Введите название строения (пример: 3):");
+                "Введите Id строения (пример: 3):");
         }
 
         public List<string> List()

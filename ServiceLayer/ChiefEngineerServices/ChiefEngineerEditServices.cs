@@ -1,4 +1,4 @@
-﻿using DataLayer.EfClasses;
+﻿
 using DataLayer.EfCode;
 using System.Data.Entity;
 
@@ -24,24 +24,7 @@ namespace ServiceLayer.ChiefEngineerServices
 
                 if (building != null)
                 {
-                    if (building.ProjectManager != null)
-                    {
-                        building.ProjectManager.Name = chiefEngineer.Name;
-                        building.ProjectManager.Id = chiefEngineer.Id;
-                        building.ProjectManager.BuildingId = building.Id;
-                        building.ProjectManager.User = chiefEngineer.User;
-                    }
-                    else
-                    {
-                        building.ProjectManager = new ProjectManager
-                        {
-                            Id = chiefEngineer.Id,
-                            Name = chiefEngineer.Name,
-                            BuildingId = building.Id,
-                            User = chiefEngineer.User
-                        };
-                    }
-
+                    building.ChiefEngineer = chiefEngineer;
                     _context.SaveChanges();
                     return $"Главный инженер: {chiefEngineer.Name} назначен на объект: {building.Name}";
                 }

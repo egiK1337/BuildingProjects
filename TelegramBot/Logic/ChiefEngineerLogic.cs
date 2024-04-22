@@ -38,5 +38,10 @@ namespace TelegramBot.TelegramServices
         {
             return _chiefEngineerListServices.List();
         }
+
+        public string DeleteFromBuild(string _userId, string _buildId)
+        {
+            return _chiefEngineerDeleteServices.DeleteFromBuild(_userId, _buildId);
+        }
     }
 }

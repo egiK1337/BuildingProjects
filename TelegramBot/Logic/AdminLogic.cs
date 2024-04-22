@@ -45,6 +45,11 @@ namespace TelegramBot.TelegramServices
             return _adminListServices.List();
         }
 
+        public void AddAdmin()
+        {
+            _adminAddServices.AddAdmin();
+        }
+
 
     }
 }

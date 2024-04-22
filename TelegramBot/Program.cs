@@ -29,18 +29,12 @@ class Program
 
     static async Task Main()
     {
-        var efCoreContext = new EfCoreContext();
+        //var efCoreContext = new EfCoreContext();
 
-        var engineerLogic = new EngineerLogic(efCoreContext);
-        var adminLogic = new AdminLogic(efCoreContext);
-        var chiefEngineerLogic = new ChiefEngineerLogic(efCoreContext);
-        var projectManagerLogic = new ProjectManagerLogic(efCoreContext);
-        var buildingLogic = new BuildingLogic(efCoreContext);
-        var userLogic = new UserLogic(efCoreContext);
+        //var adminLogic = new AdminLogic(efCoreContext);
 
-
-        buildingLogic.List();
-
+        //adminLogic.AddAdmin();
+        
 
         _botClient =
             new TelegramBotClient(
@@ -285,6 +279,55 @@ class Program
                                 }
                                 break;
 
+                            case StateAction.ProjectManagerAddToBuild:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var projectManagerList = projectManagerLogic.List();
+                                        foreach (var item in projectManagerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _userId = message.Text;
+                                            var projectList = buildingLogic.ListWithoutEmployees();
+                                            foreach (var item in projectList)
+                                            {
+                                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"{item};");
+                                            }
+                                            await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _buildId = message.Text;
+                                            var addProjectManagerToBuild = projectManagerLogic.Edit(_userId, _buildId);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, addProjectManagerToBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+
                             case StateAction.AdminDel:
                                 switch (_stateAdd)
                                 {
@@ -453,6 +496,50 @@ class Program
                                             _buildId = message.Text;
                                             var addEngineerToBuild = engineerLogic.Edit(_userId, _buildId);
                                             await _botClient.SendTextMessageAsync(message.Chat.Id, addEngineerToBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+
+                            case StateAction.EngineerDelBuild:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var fullList = buildingLogic.List();
+                                        foreach (var item in fullList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, item);
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _userId = message.Text;
+                                            await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _buildId = message.Text;
+                                            var engineerDelBuild = engineerLogic.DeleteFromBuild(_userId, _buildId);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, engineerDelBuild);
                                         }
                                         _stateAction = StateAction.Start;
                                         _stateAdd = StateAdd.Start;
@@ -649,6 +736,100 @@ class Program
                                         break;
                                 }
                                 break;
+
+                            case StateAction.ChiefEngineerAddToBuild:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var chiefEngineerList = chiefEngineerLogic.List();
+                                        foreach (var item in chiefEngineerList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, $" Id: {item.Id}; Имя : {item.Name}");
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _userId = message.Text;
+                                            var projectList = buildingLogic.ListWithoutEmployees();
+                                            foreach (var item in projectList)
+                                            {
+                                                await _botClient.SendTextMessageAsync(message.Chat.Id, $"{item};");
+                                            }
+                                            await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _buildId = message.Text;
+                                            var addChiefEngineerToBuild = chiefEngineerLogic.Edit(_userId, _buildId);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, addChiefEngineerToBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+
+                            case StateAction.ChiefEngineerDelBuild:
+                                switch (_stateAdd)
+                                {
+                                    case StateAdd.Start:
+                                        var fullList = buildingLogic.List();
+                                        foreach (var item in fullList)
+                                        {
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, item);
+                                        }
+                                        _stateAdd = StateAdd.InProgress;
+                                        await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.InProgress:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _userId = message.Text;                                      
+                                            await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
+                                        }
+                                        else await UserLogic.RequestId(message.Chat.Id, _botClient);
+
+                                        break;
+
+                                    case StateAdd.Finish:
+                                        CheckId(message);
+                                        if (_stateAdd == StateAdd.Finish)
+                                        {
+                                            _buildId = message.Text;
+                                            var chiefEngineerDelBuild = chiefEngineerLogic.DeleteFromBuild(_userId, _buildId);
+                                            await _botClient.SendTextMessageAsync(message.Chat.Id, chiefEngineerDelBuild);
+                                        }
+                                        _stateAction = StateAction.Start;
+                                        _stateAdd = StateAdd.Start;
+
+                                        efCoreContext.Dispose();
+
+                                        MenuHandler.ShowMainMenu(message.Chat.Id, _botClient, _currentUser);
+
+                                        break;
+                                }
+                                break;
+
 
                             case StateAction.ChiefEngineerList:
                                 var chiefEngineersList = engineerLogic.List();

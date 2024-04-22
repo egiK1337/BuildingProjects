@@ -24,24 +24,7 @@ namespace ServiceLayer.ProjectManagerServices
 
                 if (building != null)
                 {
-                    if (building.ProjectManager != null)
-                    {
-                        building.ProjectManager.Name = projectManager.Name;
-                        building.ProjectManager.Id = projectManager.Id;
-                        building.ProjectManager.BuildingId = building.Id;
-                        building.ProjectManager.User = projectManager.User;
-                    }
-                    else
-                    {
-                        building.ProjectManager = new ProjectManager
-                        {
-                            Id = projectManager.Id,
-                            Name = projectManager.Name,
-                            BuildingId = building.Id,
-                            User = projectManager.User 
-                        };
-                    }
-
+                    building.ProjectManager = projectManager;
                     _context.SaveChanges();
                     return $"Руководитель проекта: {projectManager.Name} назначен на объект: {building.Name}";
                 }
