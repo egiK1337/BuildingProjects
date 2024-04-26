@@ -29,8 +29,10 @@ namespace ServiceLayer.BuildingServices
                 {
                     Name = enterBuildingName
                 };
+
                 _context.Add(newBuild);
                 _context.SaveChanges();
+
                 return $"Строение {enterBuildingName} добавлено в базу";
             }
             return "Вы не ввели название строения";

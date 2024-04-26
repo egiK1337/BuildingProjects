@@ -1,6 +1,5 @@
 using DataLayer.EfCode;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace BuildingProjects
 {

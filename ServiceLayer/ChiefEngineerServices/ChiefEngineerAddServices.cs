@@ -28,9 +28,11 @@ namespace ServiceLayer.ChiefEngineerServices
                 {
                     return "Такой главный инженер уже есть в базе";
                 }
+
                 var newChiefEngineer = new ChiefEngineer()
                 {
                     Name = enterChiefEngineer,
+
                     User = new User() 
                     {
                         Login = user.Login,
@@ -40,6 +42,7 @@ namespace ServiceLayer.ChiefEngineerServices
                 };
                 _context.Add(newChiefEngineer);
                 _context.SaveChanges();
+
                 return $"Главный инженер {enterChiefEngineer} добавлен в базу";
             }
             return "Вы не ввели имя главного инженера";

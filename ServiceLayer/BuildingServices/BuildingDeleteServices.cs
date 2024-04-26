@@ -19,9 +19,9 @@ namespace ServiceLayer.BuildingServices
             {
                 _context.Buildings.Remove(searchBuilding);
                 _context.SaveChanges();
+
                 return $"Постройка {searchBuilding.Name} удалёна";
             }
-
             return $"Постройка с {id} нет в базе";
         }
     }

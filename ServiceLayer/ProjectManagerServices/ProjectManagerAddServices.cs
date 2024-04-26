@@ -1,7 +1,6 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
 
-
 namespace ServiceLayer.ProjectManagerServices
 {
     public class ProjectManagerAddServices
@@ -40,6 +39,7 @@ namespace ServiceLayer.ProjectManagerServices
                 };
                 _context.Add(newProjectManager);
                 _context.SaveChanges();
+
                 return $"Руководитель проекта {enterProjectManager} добавлен в базу";
             }
             return "Вы не ввели имя руководителя проекта";

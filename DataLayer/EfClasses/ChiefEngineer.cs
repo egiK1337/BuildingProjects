@@ -10,9 +10,6 @@ namespace DataLayer.EfClasses
         public int UserId { get; set; }
         public virtual User User { get; set; }
         public virtual Building? Building { get; set; }
-        //public virtual Building Building { get; set; }
-
-
 
         public ChiefEngineer()
         {

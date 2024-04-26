@@ -10,6 +10,7 @@ namespace ServiceLayer.ProjectManagerServices
         {
             _context = context;
         }
+
         public string Delete(int id)
         {
             var searchProjectManager = _context.ProjectManagers.Where(i => i.Id == id).FirstOrDefault();
@@ -18,6 +19,7 @@ namespace ServiceLayer.ProjectManagerServices
             {
                 _context.ProjectManagers.Remove(searchProjectManager);
                 _context.SaveChanges();
+
                 return $"Руководитель проекта {searchProjectManager.Name} удалён";
             }
 

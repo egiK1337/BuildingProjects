@@ -11,6 +11,7 @@ namespace ServiceLayer.ChiefEngineerServices
         {
             _context = context;
         }
+
         public string Delete(int id)
         {
             var searchChiefEngineer = _context.ChiefEngineers.Where(i => i.Id == id).FirstOrDefault();
@@ -19,6 +20,7 @@ namespace ServiceLayer.ChiefEngineerServices
             {
                 _context.ChiefEngineers.Remove(searchChiefEngineer);
                 _context.SaveChanges();
+
                 return $"Главный инженер {searchChiefEngineer.Name} удалён";
             }
 

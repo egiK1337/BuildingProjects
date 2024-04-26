@@ -22,6 +22,7 @@ namespace ServiceLayer.BuildingServices
                 {
                     check.Name = name;
                     _context.SaveChanges();
+
                     return $"Строение {check.Name} обновлёно";
                 }
             }

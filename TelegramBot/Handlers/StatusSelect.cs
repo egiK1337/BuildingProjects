@@ -44,9 +44,6 @@ namespace TelegramBot.Handlers
             {
                 return StateAction.Error;
             }
-
-
         }
-
     }
 }

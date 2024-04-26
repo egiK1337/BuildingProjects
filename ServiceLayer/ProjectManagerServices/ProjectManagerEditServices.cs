@@ -1,4 +1,4 @@
-﻿using DataLayer.EfClasses;
+﻿
 using DataLayer.EfCode;
 using System.Data.Entity;
 
@@ -12,6 +12,7 @@ namespace ServiceLayer.ProjectManagerServices
         {
             _context = context;
         }
+
         public string Edit(string _userId, string _buildId)
         {
             int.TryParse(_userId, out var userId);
@@ -26,6 +27,7 @@ namespace ServiceLayer.ProjectManagerServices
                 {
                     building.ProjectManager = projectManager;
                     _context.SaveChanges();
+
                     return $"Руководитель проекта: {projectManager.Name} назначен на объект: {building.Name}";
                 }
                 else

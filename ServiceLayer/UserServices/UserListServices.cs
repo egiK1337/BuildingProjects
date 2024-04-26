@@ -1,8 +1,6 @@
 ﻿
 using DataLayer.EfClasses;
 using DataLayer.EfCode;
-using System.Collections;
-using System.Data.Entity;
 
 namespace ServiceLayer.UserServices
 {
@@ -39,8 +37,6 @@ namespace ServiceLayer.UserServices
             {
                 users.Add("Id: " + item.Id + "; Имя: " + item.Name + " Статус - " + Roles.Admin);
             }
-
-            Console.WriteLine();
 
             return users;
         }

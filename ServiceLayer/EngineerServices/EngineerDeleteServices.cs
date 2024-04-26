@@ -1,6 +1,5 @@
 ﻿using DataLayer.EfCode;
 
-
 namespace ServiceLayer.EngineerServices
 {
     public class EngineerDeleteServices

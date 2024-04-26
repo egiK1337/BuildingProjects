@@ -21,7 +21,6 @@ namespace DataLayer.EfCode
         public DbSet<ProjectManager> ProjectManagers { get; set; }
         public IEnumerable<object> ChiefEnginers { get; set; }
 
-        /////todo
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

@@ -14,10 +14,8 @@ namespace ServiceLayer.AdminServices
             _context = context;
         }
 
-
         public void AddAdmin()
-        {
-            
+        {           
             var newAdmin = new Admin()
             {
                 Name = "Admin",

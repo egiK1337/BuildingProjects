@@ -22,7 +22,6 @@ namespace ServiceLayer.BuildingServices
             {
                 list.Add("Id: " + employee.Id + " " + employee.Name);
             }
-
             return list;
         }
 

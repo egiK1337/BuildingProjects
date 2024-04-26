@@ -38,11 +38,11 @@ namespace ServiceLayer.EngineerServices
                         Password = user.Password,
                         Roles = user.Roles
                     }
-
                 };
 
                 _context.Add(newEngineer);
                 _context.SaveChanges();
+
                 return $"Инженер {enterEngineer} добавлен в базу";
             }
             return "Вы не ввели имя инженера";

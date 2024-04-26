@@ -1,7 +1,7 @@
 ﻿using DataLayer.EfClasses;
 using DataLayer.EfCode;
 using ServiceLayer.AdminServices;
-using Telegram.Bot;
+
 
 namespace TelegramBot.TelegramServices
 {
@@ -25,11 +25,6 @@ namespace TelegramBot.TelegramServices
             return _adminAddServices.Add(enterString, user);
         }
 
-        //public (Admin, string) Add(string enterString)
-        //{
-        //    return _adminAddServices.Add(enterString);
-        //}
-
         public string Delete(int id)
         {
             return _adminDeleteServices.Delete(id);
@@ -49,7 +44,5 @@ namespace TelegramBot.TelegramServices
         {
             _adminAddServices.AddAdmin();
         }
-
-
     }
 }

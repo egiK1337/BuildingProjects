@@ -1,5 +1,4 @@
 ﻿
-
 namespace TelegramBot.Enum
 {
     internal enum StateAdd

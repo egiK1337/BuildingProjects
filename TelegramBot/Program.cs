@@ -15,30 +15,20 @@ class Program
 {
     private static ITelegramBotClient _botClient;
     private static ReceiverOptions _receiverOptions;
-    private static bool _isAuthorized = false;
 
     private static StateAction _stateAction;
     private static State _currentState;
     private static StateAdd _stateAdd;
-    //private static StateAction _stateAction = StateAction.Start;
-    //private static State _currentState = State.Start;
-    //private static StateAdd _stateAdd = StateAdd.Start;
+
     private static DataLayer.EfClasses.User _currentUser = new DataLayer.EfClasses.User();
-    private static string _userId;
-    private static string _buildId;
+    private static string? _userId;
+    private static string? _buildId;
 
     static async Task Main()
     {
-        //var efCoreContext = new EfCoreContext();
-
-        //var adminLogic = new AdminLogic(efCoreContext);
-
-        //adminLogic.AddAdmin();
-        
-
-        _botClient =
-            new TelegramBotClient(
-                "6527030864:AAH1uKB7y9yTXg7DXZnAQo8fSQxRejrTSYQ"); // Присваиваем нашей переменной значение, в параметре передаем Token, полученный от BotFather
+        var path = Path.Combine("Secrets", "secret.txt");
+        var token = System.IO.File.ReadAllText(path);
+        _botClient = new TelegramBotClient(token); // Присваиваем нашей переменной значение, в параметре передаем Token, полученный от BotFather
         _receiverOptions = new ReceiverOptions // Также присваем значение настройкам бота
         {
             AllowedUpdates =
@@ -804,7 +794,7 @@ class Program
                                         CheckId(message);
                                         if (_stateAdd == StateAdd.Finish)
                                         {
-                                            _userId = message.Text;                                      
+                                            _userId = message.Text;
                                             await UserLogic.RequestBuildName(message.Chat.Id, _botClient);
                                         }
                                         else await UserLogic.RequestId(message.Chat.Id, _botClient);
